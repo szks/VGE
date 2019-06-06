@@ -12,7 +12,9 @@ import random, time
 from VGE.make_vge_jobstatuslist import *
 from VGE.get_vge_conf import get_vge_conf
 
-def pipeline_jobcontroll(cl_args, job_args, total_joblist,new_joblist,task_check, pipeline_parent_pid_list, command_list):
+def pipeline_jobcontroll(cl_args, job_args, total_joblist,
+                         new_joblist, new_express_joblist,
+                         task_check, pipeline_parent_pid_list, command_list):
     #
     from logging import getLogger,StreamHandler,basicConfig,DEBUG,INFO,WARNING,ERROR,CRITICAL
     logger=getLogger(__name__)
@@ -474,6 +476,13 @@ def pipeline_jobcontroll(cl_args, job_args, total_joblist,new_joblist,task_check
                                           else:
                                              logger.debug("VGE(JOB): we already know this Pipeline process id [%i]." %temp)
 
+                                          # job priority
+                                          #   0: high (default)
+                                          #   1: low
+                                          express_job = True
+                                          if messeage["priority"] > 0:
+                                              express_job = False
+
                                           #
                                           # update new_joblist
                                           #
@@ -482,8 +491,12 @@ def pipeline_jobcontroll(cl_args, job_args, total_joblist,new_joblist,task_check
                                                filename = basefilename+".sh.0"
                                                messeage["filename"]=filename
                                                messeage["bulkjob_id"]=0 # 
-                                               new_joblist[jobid]=dict()
-                                               new_joblist[jobid]=messeage
+                                               if express_job:
+                                                   new_express_joblist[jobid]=dict()
+                                                   new_express_joblist[jobid]=messeage
+                                               else:
+                                                   new_joblist[jobid]=dict()
+                                                   new_joblist[jobid]=messeage
                                                #
                                                total_joblist[jobid]=dict()
                                                total_joblist[jobid]=messeage
@@ -496,8 +509,12 @@ def pipeline_jobcontroll(cl_args, job_args, total_joblist,new_joblist,task_check
                                                      filename = basefilename+".sh.%i" %bulkjob_id
                                                      messeage["filename"]=filename
                                                      messeage["bulkjob_id"]=bulkjob_id
-                                                     new_joblist[jobid]=dict()
-                                                     new_joblist[jobid]=messeage
+                                                     if express_job:
+                                                         new_express_joblist[jobid]=dict()
+                                                         new_express_joblist[jobid]=messeage
+                                                     else:
+                                                         new_joblist[jobid]=dict()
+                                                         new_joblist[jobid]=messeage
                                                      #
                                                      total_joblist[jobid]=dict()
                                                      total_joblist[jobid]=messeage

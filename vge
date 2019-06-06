@@ -293,6 +293,7 @@ if __name__ == '__main__':
         total_joblist=manager.dict()
         command_list=manager.dict()
         new_joblist=manager.dict()
+        new_express_joblist=manager.dict()
         task_check=manager.dict()
         pipeline_parent_pid_list=manager.dict()
 
@@ -306,8 +307,8 @@ if __name__ == '__main__':
         #
         #make a multiprocessing process
         #
-        pipeline_jobcontroll_process = multiprocessing.Process(target=pipeline_jobcontroll,    \
-                            args=(cl_args,job_args, total_joblist, new_joblist, task_check,  \
+        pipeline_jobcontroll_process = multiprocessing.Process(target=pipeline_jobcontroll,
+                            args=(cl_args,job_args, total_joblist, new_joblist, new_express_joblist, task_check,
                                   pipeline_parent_pid_list,command_list,))
 
         #
@@ -318,7 +319,8 @@ if __name__ == '__main__':
         #
         # start mpi master process
         #
-        mpi_jobcontroll_master(cl_args, mpi_master_args, comm, total_joblist,new_joblist,task_check, \
+        mpi_jobcontroll_master(cl_args, mpi_master_args, comm, total_joblist,
+                               new_joblist, new_express_joblist, task_check,
                                pipeline_parent_pid_list, command_list)
 
         #

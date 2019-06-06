@@ -15,7 +15,9 @@ from VGE.get_target_worker import get_target_worker
 from VGE.get_vge_conf import get_vge_conf
 from VGE.send_emergencysignal import send_emergencysignal
 
-def mpi_jobcontroll_master(cl_args, mpi_args, comm, total_joblist,new_joblist,task_check,pipeline_parent_pid_list,command_list):   
+def mpi_jobcontroll_master(cl_args, mpi_args, comm, total_joblist,
+                           new_joblist, new_express_joblist,
+                           task_check,pipeline_parent_pid_list,command_list):
 
     #
     # MPI message tag
@@ -225,6 +227,8 @@ def mpi_jobcontroll_master(cl_args, mpi_args, comm, total_joblist,new_joblist,ta
     #
     local_new_joblist = dict()
     icount_local_new_joblist = 0
+    local_new_express_joblist = dict()
+    icount_local_new_express_joblist = 0
     max_of_current_joblist = (nproc-1) + 5 # max of job pool size in current_joblist
     max_check_count=100
     task_check_restofjob=0
@@ -286,6 +290,12 @@ def mpi_jobcontroll_master(cl_args, mpi_args, comm, total_joblist,new_joblist,ta
            # check new jobs
            #
            if flag_jobschedule_first:
+              if  icount_local_new_express_joblist == 0:
+              #if len(local_new_express_joblist) ==0:
+                  if len(new_express_joblist) != 0:  # got new jobs
+                     local_new_express_joblist = new_express_joblist.copy()
+                     icount_local_new_express_joblist = len(local_new_express_joblist) # update this value at this time
+                     logger.info( "VGE(MPI): got new express-job(s) from VGE(JOB)")
               if  icount_local_new_joblist == 0:
               #if len(local_new_joblist) ==0:
                   if len(new_joblist) != 0:  # got new jobs
@@ -297,7 +307,24 @@ def mpi_jobcontroll_master(cl_args, mpi_args, comm, total_joblist,new_joblist,ta
               #if  icount_local_new_joblist != 0:
               #if completed_newjob_package is False or (completed_newjob_package is True and command == None):
               if max_of_current_joblist >=  task_check_restofjob:
-                 if  icount_local_new_joblist > 0:
+                 if icount_local_new_express_joblist > 0:
+                    # get one new job if new job is not packaged yet.
+                    (newjobid , newjob) = local_new_express_joblist.popitem()
+                    icount_local_new_express_joblist -=1 # decrement this value
+                    #logger.debug("VGE(MPI): new job contents: [%s][%s]"  %(newjobid, newjob))
+                    if newjob.has_key("status") is True:
+                       if newjob["status"] is not None: 
+                          #jobid = number_of_jobs  # this is because the jobid starts from zero.
+                          current_joblist[newjobid] = newjob
+                          #total_joblist[newjobid] = newjob
+                          #number_of_jobs +=1 # update maximum number of jobs so far
+                          task_check_restofjob +=1
+                          del new_express_joblist[newjobid]  # delete this order because we have already received
+                          time.sleep(nsleep_updatelist)
+                          #logger.debug("VGE(MPI): new job contents: [%s][%s]"  %(newjobid, newjob))
+                    else:
+                       pass # this dict.copy was incompleted.
+                 elif icount_local_new_joblist > 0:
                     # get one new job if new job is not packaged yet.
                     (newjobid , newjob) = local_new_joblist.popitem()
                     icount_local_new_joblist -=1 # decrement this value

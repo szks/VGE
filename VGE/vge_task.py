@@ -315,6 +315,12 @@ def vge_task(arg1,arg2,arg3,arg4,arg5=None):
      if arg3 != "":
          joblist[jobid]["basefilename"] = arg3
 
+  # job priority
+  #   0: high (default)
+  #   1: low
+  joblist[jobid]["priority"] = 0
+  if arg5 == "low_priority":
+     joblist[jobid]["priority"] = 1
 
   #
   # check a request...
